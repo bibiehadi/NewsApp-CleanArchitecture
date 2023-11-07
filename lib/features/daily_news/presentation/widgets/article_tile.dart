@@ -1,18 +1,36 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_clean_architecture/features/daily_news/domain/entities/article.dart';
 
 class ArticleWidget extends StatelessWidget {
   final ArticleEntity? article;
-  const ArticleWidget({key, this.article}) : super(key: key);
+  final bool? isRemovable;
+  final void Function(ArticleEntity article)? onRemove;
+  final void Function(ArticleEntity article)? onArticlePressed;
+  const ArticleWidget(
+      {key,
+      this.article,
+      this.onArticlePressed,
+      this.isRemovable = false,
+      this.onRemove})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      height: MediaQuery.of(context).size.width / 2.2,
-      child: Row(
-        children: [_buildImage(context), _buildTitleAndDescription()],
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: _onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        height: MediaQuery.of(context).size.width / 2.2,
+        child: Row(
+          children: [
+            _buildImage(context),
+            _buildTitleAndDescription(),
+            _buildRemovableArea(),
+          ],
+        ),
       ),
     );
   }
@@ -44,6 +62,9 @@ class ArticleWidget extends StatelessWidget {
             decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.08),
             ),
+            child: const Center(
+              child: CupertinoActivityIndicator(),
+            ),
           ),
         ),
       ),
@@ -56,6 +77,9 @@ class ArticleWidget extends StatelessWidget {
             height: double.maxFinite,
             decoration: BoxDecoration(
               color: Colors.black.withOpacity(0.08),
+            ),
+            child: const Center(
+              child: Icon(Icons.refresh),
             ),
           ),
         ),
@@ -109,5 +133,30 @@ class ArticleWidget extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildRemovableArea() {
+    if (isRemovable!) {
+      return GestureDetector(
+        onTap: _onRemove,
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 8),
+          child: Icon(Icons.bookmark_remove_rounded),
+        ),
+      );
+    }
+    return Container();
+  }
+
+  void _onTap() {
+    if (onArticlePressed != null) {
+      onArticlePressed!(article!);
+    }
+  }
+
+  void _onRemove() {
+    if (onRemove != null) {
+      onRemove!(article!);
+    }
   }
 }
